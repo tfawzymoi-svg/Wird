@@ -40,8 +40,9 @@ $('finishKhatma').onclick=()=>{if(!state.records.length){notify('سجّل مرا
 $('export').onclick=()=>{let blob=new Blob([JSON.stringify({app:'wirdi-simple',version:3,...state},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='wirdi-backup-'+localDay()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)};
 function validRecords(records){return Array.isArray(records)&&records.length<=20000&&records.every(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&Array.isArray(r.juz)&&Array.isArray(r.surahs)&&(r.quarters===undefined||Array.isArray(r.quarters))&&(r.verseRanges===undefined||Array.isArray(r.verseRanges))&&r.juz.every(x=>Number.isInteger(x)&&x>=1&&x<=30)&&r.surahs.every(x=>Number.isInteger(x)&&x>=1&&x<=114)&&(r.quarters||[]).every(x=>Number.isInteger(x)&&x>=1&&x<=240)&&(r.verseRanges||[]).length<=114&&(r.verseRanges||[]).every(v=>v&&Number.isInteger(v.surah)&&v.surah>=1&&v.surah<=114&&Number.isInteger(v.from)&&Number.isInteger(v.to)&&v.from>=1&&v.to>=v.from&&v.to<=LENGTHS[v.surah-1]))&&new Set(records.map(r=>r.date)).size===records.length}
 $('importBtn').onclick=()=>$('import').click();$('import').onchange=async e=>{let f=e.target.files[0];e.target.value='';if(!f)return;try{if(f.size>5000000)throw Error();let d=JSON.parse(await f.text());if(d.app!=='wirdi-simple'||!validRecords(d.records))throw Error();const archives=d.archives===undefined?[]:d.archives;if(!Array.isArray(archives)||archives.length>1000||!archives.every(a=>Number.isInteger(a.number)&&a.number>=1&&/^\d{4}-\d{2}-\d{2}$/.test(a.end)&&validRecords(a.records)))throw Error();if(confirm('سيحل هذا الملف محل سجل الختمات الحالي كله. متابعة؟')){state={records:d.records,archives,currentNumber:Number.isInteger(d.currentNumber)&&d.currentNumber>=1?d.currentNumber:1,currentStart:typeof d.currentStart==='string'?d.currentStart:null};if(persist()){reset();render();notify('تم استيراد البيانات')}}}catch(err){notify('ملف النسخة الاحتياطية غير صالح')}};
-reset();render();if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./service-worker.js?v=6').catch(()=>{});
+reset();render();if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./service-worker.js?v=7').catch(()=>{});
 
+</script>
 <script>
 // UI localisation only. Review data and all original storage keys remain unchanged.
 (function(){
@@ -150,5 +151,4 @@ const oldFormatDate=formatDate;
 formatDate=function(iso){if(lang==='ar')return oldFormatDate(iso);const [y,m,d]=iso.split('-').map(Number);return new Intl.DateTimeFormat('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).format(new Date(y,m-1,d,12))};
 translate();
 })();
-</script>
 </script></body></html>
